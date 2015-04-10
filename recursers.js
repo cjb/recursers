@@ -6,13 +6,7 @@ if (Meteor.isClient) {
 
   Template.body.helpers({
     tasks: function () {
-      if (Session.get("hideCompleted")) {
-        // If hide completed is checked, filter tasks
-        return Tasks.find({checked: {$ne: true}}, {sort: {createdAt: -1}});
-      } else {
-        // Otherwise, return all of the tasks
-        return Tasks.find({}, {sort: {createdAt: -1}});
-      }
+      return Tasks.find();
     },
     hideCompleted: function () {
       return Session.get("hideCompleted");
@@ -75,7 +69,7 @@ Meteor.methods({
       text: text,
       createdAt: new Date(),
       owner: Meteor.userId(),
-      username: Meteor.user().username
+      username: Meteor.user().profile.name
     });
   },
   deleteTask: function (taskId) {
@@ -116,6 +110,8 @@ if (Meteor.isServer) {
         { private: {$ne: true} },
         { owner: this.userId }
       ]
-    });
+    }
+    , { sort: {createdAt: -1}, limit: 1, distinct: 'owner' }
+    );
   });
 }
