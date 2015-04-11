@@ -3,48 +3,54 @@
 </head>
 
 <body>
-  <div class="container">
-    <header>
-      <h1>Todo List ({{incompleteCount}})</h1>
-
-      <label class="hide-completed">
-        <input type="checkbox" checked="{{hideCompleted}}" />
-        Hide Completed Tasks
-      </label>
-
-      {{> loginButtons}}
-
-      {{#if currentUser}}
-        <form class="new-task">
-          <input type="text" name="text" placeholder="Type to add new tasks" />
-        </form>
-      {{/if}}
-    </header>
-
-    <ul>
-      {{#each tasks}}
-        {{> task}}
-      {{/each}}
-    </ul>
+  <div class="navbar navbar-default" role="navigation">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Checkin Board</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav navbar-right">
+        {{> loginButtons}}
+      </ul>
+    </div>
   </div>
+
+{{#if currentUser}}
+  <div class="container">
+    <form class="new-task">
+      <div class="form-group">
+        <input class="form-control" type="text" name="text" placeholder="What are you going to work on today?" style="font-family:Monospace;"/>
+      </div>
+    </form>
+  </div>
+{{/if}}
+
+ <div class="container">
+   {{#each lastupdates}}
+     {{> task}}
+   {{/each}}
+ </div>
+
 </body>
 
 <template name="task">
-  <li class="{{#if checked}}checked{{/if}} {{#if private}}private{{/if}}">
-    <button class="delete">&times;</button>
-
-    <input type="checkbox" checked="{{checked}}" class="toggle-checked" />
-
-    {{#if isOwner}}
-      <button class="toggle-private">
+  {{#if currentUser}}
+  <div class="row">
+    <div class="col-xs-2"><img src="{{image}}" height=75 width=75/></div>
+    <div class="col-xs-2"><strong>{{username}}</strong></div>
+    <div class="col-xs-5">{{text}}</div>
+    <div class="col-xs-1">
+      {{#if isOwner}}
         {{#if private}}
-          Private    
+          <button class="toggle-private btn-default btn-sm btn">
+            Not looking to pair
+          </button>
         {{else}}
-          Public
+          <button class="toggle-private btn-success btn-sm btn">
+            Looking to pair!
+          </button>
         {{/if}}
-      </button>
-    {{/if}}
-
-    <span class="text"><strong>{{username}}</strong> - {{text}}</span>
-  </li>
+      {{/if}}
+    </div>
+  </div>
+  {{/if}}
 </template>

@@ -1,19 +1,21 @@
-Tasks = new Mongo.Collection("tasks");
+LastUpdates = new Mongo.Collection("lastupdates");
+AllUpdates = new Mongo.Collection("allupdates");
 
 if (Meteor.isClient) {
   // This code only runs on the client
-  Meteor.subscribe("tasks");
+  Meteor.subscribe("lastupdates");
+  Meteor.subscribe("userData");
 
   Template.body.helpers({
-    tasks: function () {
-      return Tasks.find();
+    lastupdates: function () {
+      return LastUpdates.find();
     },
     hideCompleted: function () {
       return Session.get("hideCompleted");
     },
     incompleteCount: function () {
-      return Tasks.find({checked: {$ne: true}}).count();
-    }
+      return LastUpdates.find({checked: {$ne: true}}).count();
+    },
   });
 
   Template.body.events({
@@ -50,7 +52,7 @@ if (Meteor.isClient) {
   Template.task.helpers({
     isOwner: function () {
       return this.owner === Meteor.userId();
-    }
+    },
   });
 
   Accounts.ui.config({
@@ -65,53 +67,63 @@ Meteor.methods({
       throw new Meteor.Error("not-authorized");
     }
 
-    Tasks.insert({
+    LastUpdates.upsert({
+      owner: Meteor.userId()
+    },
+    {
       text: text,
       createdAt: new Date(),
       owner: Meteor.userId(),
-      username: Meteor.user().profile.name
+      username: Meteor.user().profile.name,
+      image: Meteor.user().services.recursecenter.image 
+    });
+
+    AllUpdates.insert({
+      text: text,
+      createdAt: new Date(),
+      owner: Meteor.userId(),
+      username: Meteor.user().profile.name,
+      image: Meteor.user().services.recursecenter.image 
     });
   },
+
   deleteTask: function (taskId) {
-    var task = Tasks.findOne(taskId);
+    var task = LastUpdates.findOne(taskId);
     if (task.private && task.owner !== Meteor.userId()) {
       // If the task is private, make sure only the owner can delete it
       throw new Meteor.Error("not-authorized");
     }
 
-    Tasks.remove(taskId);
+    LastUpdates.remove(taskId);
   },
   setChecked: function (taskId, setChecked) {
-    var task = Tasks.findOne(taskId);
+    var task = LastUpdates.findOne(taskId);
     if (task.private && task.owner !== Meteor.userId()) {
       // If the task is private, make sure only the owner can check it off
       throw new Meteor.Error("not-authorized");
     }
 
-    Tasks.update(taskId, { $set: { checked: setChecked} });
+    LastUpdates.update(taskId, { $set: { checked: setChecked} });
   },
   setPrivate: function (taskId, setToPrivate) {
-    var task = Tasks.findOne(taskId);
+    var task = LastUpdates.findOne(taskId);
 
     // Make sure only the task owner can make a task private
     if (task.owner !== Meteor.userId()) {
       throw new Meteor.Error("not-authorized");
     }
 
-    Tasks.update(taskId, { $set: { private: setToPrivate } });
+    LastUpdates.update(taskId, { $set: { private: setToPrivate } });
   }
 });
 
 if (Meteor.isServer) {
-  // Only publish tasks that are public or belong to the current user
-  Meteor.publish("tasks", function () {
-    return Tasks.find({
-      $or: [
-        { private: {$ne: true} },
-        { owner: this.userId }
-      ]
-    }
-    , { sort: {createdAt: -1}, limit: 1, distinct: 'owner' }
-    );
+  // Only publish lastupdates that are public or belong to the current user
+  Meteor.publish("lastupdates", function () {
+    return LastUpdates.find({})
   });
+  Meteor.publish("userData", function () {
+    return Meteor.users.find({_id: this.userId},
+                             {fields: {'services': 1}});
+});
 }

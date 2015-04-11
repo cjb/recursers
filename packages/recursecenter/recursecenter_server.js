@@ -9,9 +9,12 @@ OAuth.registerService('recursecenter', 2, null, function(query) {
       id: identity.id,
       accessToken: OAuth.sealSecret(accessToken),
       email: identity.email,
-      username: identity.email
+      username: identity.email,
+      image: identity.image
     },
-    options: {profile: {name: identity.first_name + " " + identity.last_name}}
+    options: {
+      profile: {name: identity.first_name + " " + identity.last_name},
+    }
   };
 });
 

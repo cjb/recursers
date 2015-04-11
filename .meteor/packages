@@ -6,6 +6,7 @@
 
 meteor-platform
 insecure
-accounts-ui
 recursecenter
 accounts-recursecenter
+twbs:bootstrap
+ian:accounts-ui-bootstrap-3
